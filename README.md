@@ -1,11 +1,11 @@
 # Event Management API
 
-API REST para gerenciamento de eventos com autenticação JWT, categorias e inscrições públicas.
+REST API for event management with JWT authentication, categories and public registrations.
 
 ## Stack
 
 - Java 21, Spring Boot 3.5.16, Maven
-- Spring Security com JWT (jjwt 0.12.6)
+- Spring Security with JWT (jjwt 0.12.6)
 - Spring Data JPA + Flyway Migrations
 - H2 Database (file-based)
 - SpringDoc OpenAPI (Swagger UI)
@@ -17,77 +17,77 @@ API REST para gerenciamento de eventos com autenticação JWT, categorias e insc
 ./mvnw spring-boot:run
 ```
 
-A aplicação iniciará em `http://localhost:8080`.
+The application will start at `http://localhost:8080`.
 
-## Acessos
+## Access
 
-| Recurso | URL |
+| Resource | URL |
 |---------|-----|
 | Swagger UI | `http://localhost:8080/swagger-ui.html` |
 | API Docs | `http://localhost:8080/eventos-api-docs` |
 | H2 Console | `http://localhost:8080/h2-console` |
 
-## Admin Padrão
+## Default Admin
 
-| Email | Senha |
+| Email | Password |
 |-------|-------|
 | `admin@email.com` | `123456` |
 
 ## Endpoints
 
-### Autenticação
+### Authentication
 
-| Método | Rota | Descrição | Auth |
+| Method | Route | Description | Auth |
 |--------|------|-----------|------|
-| POST | `/auth/register` | Registrar novo usuário | ❌ |
-| POST | `/auth/login` | Login (retorna JWT) | ❌ |
-| POST | `/auth/logout` | Invalidar token | ✅ |
+| POST | `/auth/register` | Register new user | ❌ |
+| POST | `/auth/login` | Login (returns JWT) | ❌ |
+| POST | `/auth/logout` | Invalidate token | ✅ |
 
-### Eventos
+### Events
 
-| Método | Rota | Descrição | Auth |
+| Method | Route | Description | Auth |
 |--------|------|-----------|------|
-| GET | `/events` | Listar eventos (paginado + filtros) | ❌ |
-| GET | `/events/{id}` | Detalhe do evento | ❌ |
-| POST | `/events` | Criar evento | ✅ USER |
-| PUT | `/events/{id}` | Atualizar evento | ✅ |
-| DELETE | `/events/{id}` | Excluir evento | ✅ |
-| PATCH | `/events/{id}/status` | Alterar status | ✅ |
+| GET | `/events` | List events (paginated + filters) | ❌ |
+| GET | `/events/{id}` | Event detail | ❌ |
+| POST | `/events` | Create event | ✅ USER |
+| PUT | `/events/{id}` | Update event | ✅ |
+| DELETE | `/events/{id}` | Delete event | ✅ |
+| PATCH | `/events/{id}/status` | Change status | ✅ |
 
-### Participantes
+### Participants
 
-| Método | Rota | Descrição | Auth |
+| Method | Route | Description | Auth |
 |--------|------|-----------|------|
-| POST | `/events/{id}/inscrever` | Inscrição pública | ❌ |
-| GET | `/events/{id}/participantes` | Listar inscritos | ✅ USER |
-| POST | `/events/{id}/participantes` | Cadastrar manualmente | ✅ ADMIN |
-| DELETE | `/events/{id}/participantes/{id}` | Remover inscrito | ✅ ADMIN |
+| POST | `/events/{id}/inscrever` | Public registration | ❌ |
+| GET | `/events/{id}/participantes` | List registered participants | ✅ USER |
+| POST | `/events/{id}/participantes` | Register manually | ✅ ADMIN |
+| DELETE | `/events/{id}/participantes/{id}` | Remove participant | ✅ ADMIN |
 
-### Categorias
+### Categories
 
-| Método | Rota | Descrição | Auth |
+| Method | Route | Description | Auth |
 |--------|------|-----------|------|
-| GET | `/categories` | Listar categorias | ❌ |
-| GET | `/categories/{id}` | Detalhe | ❌ |
-| POST | `/categories` | Criar | ✅ ADMIN |
-| PUT | `/categories/{id}` | Atualizar | ✅ ADMIN |
-| DELETE | `/categories/{id}` | Excluir | ✅ ADMIN |
+| GET | `/categories` | List categories | ❌ |
+| GET | `/categories/{id}` | Detail | ❌ |
+| POST | `/categories` | Create | ✅ ADMIN |
+| PUT | `/categories/{id}` | Update | ✅ ADMIN |
+| DELETE | `/categories/{id}` | Delete | ✅ ADMIN |
 
-## Filtros (GET /events)
+## Filters (GET /events)
 
-| Parâmetro | Tipo | Descrição |
+| Parameter | Type | Description |
 |-----------|------|-----------|
-| `categoriaId` | Long | Filtrar por categoria |
+| `categoriaId` | Long | Filter by category |
 | `status` | EventStatus | `UPCOMING`, `ONGOING`, `FINISHED`, `CANCELLED` |
-| `busca` | String | Busca por título ou descrição |
-| `dataInicio` | LocalDateTime | Data inicial |
-| `dataFim` | LocalDateTime | Data final |
+| `busca` | String | Search by title or description |
+| `dataInicio` | LocalDateTime | Start date |
+| `dataFim` | LocalDateTime | End date |
 
-## Status do Evento
+## Event Status
 
-O status é calculado automaticamente baseado na `dataHora`:
+The status is calculated automatically based on `dataHora`:
 
-- `dataHora > agora` → **UPCOMING**
-- `dataHora <= agora < dataHora + 2h` → **ONGOING**
-- `dataHora + 2h <= agora` → **FINISHED**
-- PATCH manual → **CANCELLED**
+- `dataHora > now` → **UPCOMING**
+- `dataHora <= now < dataHora + 2h` → **ONGOING**
+- `dataHora + 2h <= now` → **FINISHED**
+- Manual PATCH → **CANCELLED**
