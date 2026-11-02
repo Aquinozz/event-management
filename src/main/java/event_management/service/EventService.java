@@ -4,6 +4,7 @@ import event_management.dto.AlterarStatusRequestDto;
 import event_management.dto.EventRequestDto;
 import event_management.dto.EventResponseDto;
 import event_management.enums.EventStatus;
+import event_management.enums.RolesType;
 import event_management.model.Category;
 import event_management.model.Event;
 import event_management.model.Users;
@@ -16,6 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.transaction.annotation.Transactional;
@@ -77,11 +79,12 @@ public class EventService {
     }
 
     @Transactional
-    public EventResponseDto atualizar(Long id, EventRequestDto dto, String email) {
+    public EventResponseDto atualizar(Long id, EventRequestDto dto, Authentication authentication) {
         log.info("Atualizando evento ID: {}", id);
 
         Event event = eventRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Evento não encontrado"));
+        verificarPermissao(event, authentication);
 
         Category categoria = categoryRepository.findById(dto.getCategoriaId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Categoria não encontrada"));
@@ -99,20 +102,21 @@ public class EventService {
     }
 
     @Transactional
-    public void deletar(Long id) {
+    public void deletar(Long id, Authentication authentication) {
         log.info("Deletando evento ID: {}", id);
-        if (!eventRepository.existsById(id)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Evento não encontrado");
-        }
-        eventRepository.deleteById(id);
+        Event event = eventRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Evento não encontrado"));
+        verificarPermissao(event, authentication);
+        eventRepository.delete(event);
     }
 
     @Transactional
-    public EventResponseDto alterarStatus(Long id, AlterarStatusRequestDto dto) {
+    public EventResponseDto alterarStatus(Long id, AlterarStatusRequestDto dto, Authentication authentication) {
         log.info("Alterando status do evento ID: {} para {}", id, dto.getStatus());
 
         Event event = eventRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Evento não encontrado"));
+        verificarPermissao(event, authentication);
 
         event.setStatus(dto.getStatus());
         event = eventRepository.save(event);
@@ -129,6 +133,14 @@ public class EventService {
                     event.setStatus(EventStatus.FINISHED);
                     eventRepository.save(event);
                 });
+    }
+
+    private void verificarPermissao(Event event, Authentication authentication) {
+        boolean admin = authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals(RolesType.ROLE_ADMIN.name()));
+        if (!admin && !event.getCriador().getEmail().equals(authentication.getName())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Sem permissão para alterar este evento");
+        }
     }
 
     private EventStatus calcularStatus(LocalDateTime dataHora) {

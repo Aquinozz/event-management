@@ -66,22 +66,23 @@ public class EventController {
     public ResponseEntity<EventResponseDto> atualizar(@PathVariable Long id,
                                                        @RequestBody @Valid EventRequestDto dto,
                                                        Authentication authentication) {
-        EventResponseDto evento = eventService.atualizar(id, dto, authentication.getName());
+        EventResponseDto evento = eventService.atualizar(id, dto, authentication);
         return ResponseEntity.ok(evento);
     }
 
     @Operation(summary = "Deletar evento")
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deletar(@PathVariable Long id) {
-        eventService.deletar(id);
+    public ResponseEntity<Void> deletar(@PathVariable Long id, Authentication authentication) {
+        eventService.deletar(id, authentication);
         return ResponseEntity.noContent().build();
     }
 
     @Operation(summary = "Alterar status do evento")
     @PatchMapping("/{id}/status")
     public ResponseEntity<EventResponseDto> alterarStatus(@PathVariable Long id,
-                                                           @RequestBody @Valid AlterarStatusRequestDto dto) {
-        EventResponseDto evento = eventService.alterarStatus(id, dto);
+                                                           @RequestBody @Valid AlterarStatusRequestDto dto,
+                                                           Authentication authentication) {
+        EventResponseDto evento = eventService.alterarStatus(id, dto, authentication);
         return ResponseEntity.ok(evento);
     }
 }
