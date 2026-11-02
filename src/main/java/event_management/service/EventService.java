@@ -18,6 +18,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.transaction.annotation.Transactional;
@@ -123,6 +124,7 @@ public class EventService {
         return toResponseDto(event);
     }
 
+    @Scheduled(fixedRate = 60000)
     @Transactional
     public void atualizarStatusAutomaticamente() {
         log.info("Atualizando status dos eventos automaticamente");
