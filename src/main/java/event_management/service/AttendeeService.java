@@ -10,7 +10,9 @@ import event_management.repository.AttendeeRepository;
 import event_management.repository.EventRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -27,7 +29,7 @@ public class AttendeeService {
         log.info("Listando participantes do evento ID: {}", eventoId);
 
         if (!eventRepository.existsById(eventoId)) {
-            throw new RuntimeException("Evento não encontrado");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Evento não encontrado");
         }
 
         return attendeeRepository.findByEventoId(eventoId).stream()
@@ -40,23 +42,23 @@ public class AttendeeService {
         log.info("Inscrevendo participante {} no evento ID: {}", dto.getEmail(), eventoId);
 
         Event event = eventRepository.findById(eventoId)
-                .orElseThrow(() -> new RuntimeException("Evento não encontrado"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Evento não encontrado"));
 
         if (event.getStatus() == EventStatus.CANCELLED) {
-            throw new RuntimeException("Evento cancelado");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Evento cancelado");
         }
 
         if (event.getStatus() == EventStatus.FINISHED) {
-            throw new RuntimeException("Evento já encerrado");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Evento já encerrado");
         }
 
         long totalInscritos = attendeeRepository.countByEventoId(eventoId);
         if (totalInscritos >= event.getQtdVagas()) {
-            throw new RuntimeException("Evento sem vagas disponíveis");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Evento sem vagas disponíveis");
         }
 
         if (attendeeRepository.existsByEmailAndEventoId(dto.getEmail(), eventoId)) {
-            throw new RuntimeException("Email já inscrito neste evento");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Email já inscrito neste evento");
         }
 
         Attendee attendee = Attendee.builder()
@@ -76,15 +78,15 @@ public class AttendeeService {
         log.info("Admin cadastrando participante {} no evento ID: {}", dto.getEmail(), eventoId);
 
         Event event = eventRepository.findById(eventoId)
-                .orElseThrow(() -> new RuntimeException("Evento não encontrado"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Evento não encontrado"));
 
         long totalInscritos = attendeeRepository.countByEventoId(eventoId);
         if (totalInscritos >= event.getQtdVagas()) {
-            throw new RuntimeException("Evento sem vagas disponíveis");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Evento sem vagas disponíveis");
         }
 
         if (attendeeRepository.existsByEmailAndEventoId(dto.getEmail(), eventoId)) {
-            throw new RuntimeException("Email já inscrito neste evento");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Email já inscrito neste evento");
         }
 
         Attendee attendee = Attendee.builder()
@@ -103,14 +105,14 @@ public class AttendeeService {
         log.info("Removendo participante ID: {} do evento ID: {}", participanteId, eventoId);
 
         if (!eventRepository.existsById(eventoId)) {
-            throw new RuntimeException("Evento não encontrado");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Evento não encontrado");
         }
 
         Attendee attendee = attendeeRepository.findById(participanteId)
-                .orElseThrow(() -> new RuntimeException("Participante não encontrado"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Participante não encontrado"));
 
         if (!attendee.getEvento().getId().equals(eventoId)) {
-            throw new RuntimeException("Participante não pertence a este evento");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Participante não pertence a este evento");
         }
 
         attendeeRepository.delete(attendee);

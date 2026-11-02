@@ -15,7 +15,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
@@ -42,7 +44,7 @@ public class EventService {
     public EventResponseDto buscarPorId(Long id) {
         log.info("Buscando evento por ID: {}", id);
         Event event = eventRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Evento não encontrado"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Evento não encontrado"));
         return toResponseDto(event);
     }
 
@@ -51,10 +53,10 @@ public class EventService {
         log.info("Criando evento para usuário: {}", email);
 
         Category categoria = categoryRepository.findById(dto.getCategoriaId())
-                .orElseThrow(() -> new RuntimeException("Categoria não encontrada"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Categoria não encontrada"));
 
         Users criador = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuário não encontrado"));
 
         EventStatus status = calcularStatus(dto.getDataHora());
 
@@ -79,10 +81,10 @@ public class EventService {
         log.info("Atualizando evento ID: {}", id);
 
         Event event = eventRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Evento não encontrado"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Evento não encontrado"));
 
         Category categoria = categoryRepository.findById(dto.getCategoriaId())
-                .orElseThrow(() -> new RuntimeException("Categoria não encontrada"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Categoria não encontrada"));
 
         event.setTitulo(dto.getTitulo());
         event.setDescricao(dto.getDescricao());
@@ -100,7 +102,7 @@ public class EventService {
     public void deletar(Long id) {
         log.info("Deletando evento ID: {}", id);
         if (!eventRepository.existsById(id)) {
-            throw new RuntimeException("Evento não encontrado");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Evento não encontrado");
         }
         eventRepository.deleteById(id);
     }
@@ -110,7 +112,7 @@ public class EventService {
         log.info("Alterando status do evento ID: {} para {}", id, dto.getStatus());
 
         Event event = eventRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Evento não encontrado"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Evento não encontrado"));
 
         event.setStatus(dto.getStatus());
         event = eventRepository.save(event);

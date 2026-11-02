@@ -27,14 +27,14 @@ public class AuthController {
 
     @Operation(summary = "Registrar novo usuário")
     @PostMapping("/register")
-    public ResponseEntity<Void> register(@RequestBody @Valid RegisterRequestDto dto) throws Exception {
+    public ResponseEntity<Void> register(@RequestBody @Valid RegisterRequestDto dto) {
         authenticationService.register(dto);
         return ResponseEntity.ok().build();
     }
 
     @Operation(summary = "Realizar login")
     @PostMapping("/login")
-    public ResponseEntity<TokenResponseDto> login(@RequestBody @Valid LoginRequestDto dto) throws Exception {
+    public ResponseEntity<TokenResponseDto> login(@RequestBody @Valid LoginRequestDto dto) {
         TokenResponseDto response = authenticationService.login(dto);
         return ResponseEntity.ok(response);
     }

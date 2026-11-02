@@ -6,7 +6,9 @@ import event_management.model.Category;
 import event_management.repository.CategoryRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -28,7 +30,7 @@ public class CategoryService {
     public CategoryResponseDto buscarPorId(Long id) {
         log.info("Buscando categoria por ID: {}", id);
         Category category = categoryRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Categoria não encontrada"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Categoria não encontrada"));
         return toResponseDto(category);
     }
 
@@ -37,7 +39,7 @@ public class CategoryService {
         log.info("Criando categoria: {}", dto.getNome());
 
         if (categoryRepository.existsByNome(dto.getNome())) {
-            throw new RuntimeException("Categoria já existe");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Categoria já existe");
         }
 
         Category category = Category.builder()
@@ -54,7 +56,7 @@ public class CategoryService {
         log.info("Atualizando categoria ID: {}", id);
 
         Category category = categoryRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Categoria não encontrada"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Categoria não encontrada"));
 
         category.setNome(dto.getNome());
         category.setDescricao(dto.getDescricao());
@@ -67,7 +69,7 @@ public class CategoryService {
     public void deletar(Long id) {
         log.info("Deletando categoria ID: {}", id);
         if (!categoryRepository.existsById(id)) {
-            throw new RuntimeException("Categoria não encontrada");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Categoria não encontrada");
         }
         categoryRepository.deleteById(id);
     }

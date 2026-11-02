@@ -12,13 +12,14 @@ import event_management.repository.RolesRepository;
 import event_management.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.coyote.BadRequestException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Set;
 
@@ -35,12 +36,12 @@ public class AuthenticationService {
     private final TokenBlacklist tokenBlacklist;
     private final long expiration = 86400000;
 
-    public void register(RegisterRequestDto dto) throws BadRequestException {
+    public void register(RegisterRequestDto dto) {
         log.info("Tentando registrar usuário com email: {}", dto.getEmail());
 
         if (userRepository.existsByEmail(dto.getEmail())) {
             log.warn("Email já cadastrado: {}", dto.getEmail());
-            throw new BadRequestException("Usuário já cadastrado");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Usuário já cadastrado");
         }
 
         RolesEntity role = rolesRepository.findByNome(RolesType.ROLE_USER.name())
@@ -62,7 +63,7 @@ public class AuthenticationService {
         log.info("Usuário registrado com sucesso: {}", dto.getEmail());
     }
 
-    public TokenResponseDto login(LoginRequestDto dto) throws Exception {
+    public TokenResponseDto login(LoginRequestDto dto) {
         log.info("Tentativa de login para email: {}", dto.getEmail());
 
         try {
@@ -74,7 +75,7 @@ public class AuthenticationService {
             return new TokenResponseDto(token, expiration);
         } catch (BadCredentialsException e) {
             log.warn("Credenciais inválidas para: {}", dto.getEmail());
-            throw new BadRequestException("Credenciais inválidas");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Credenciais inválidas");
         }
     }
 
